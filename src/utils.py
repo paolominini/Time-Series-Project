@@ -19,8 +19,8 @@ def compare_metrics(actual, predictions_dict, model_names=None):
     for name, preds in predictions_dict.items():
         # Calculate RMSE
         rmse = np.sqrt(mean_squared_error(actual, preds))
-        
-        results[name] = {'RMSE': rmse}
+        mae = mean_absolute_error(actual, preds)
+        results[name] = {'RMSE': rmse, 'MAE': mae}
     
     # Create DataFrame and sort by RMSE
     df_metrics = pd.DataFrame.from_dict(results, orient='index')
