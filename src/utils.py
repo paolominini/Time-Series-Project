@@ -3,28 +3,35 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-def compare_metrics(actual, predictions_dict, model_names=None):
+def compare_metrics(actual, predictions_dict, benchmark_name=None):
     """
-    Calculates RMSE for multiple models.
-    
-    Args:
-        actual (pd.Series): The ground truth (test set).
-        predictions_dict (dict): Key=Model Name, Value=Predicted Series/Array.
+    Calculates RMSE and MAE for multiple models. 
+    Optionally calculates ratios against a benchmark if benchmark_name is provided.
     
     Returns:
-        pd.DataFrame: A table comparing metrics for all models.
+        pd.DataFrame: A table containing the metrics.
     """
     results = {}
     
+    # 1. Calculate Metrics
     for name, preds in predictions_dict.items():
-        # Calculate RMSE
         rmse = np.sqrt(mean_squared_error(actual, preds))
         mae = mean_absolute_error(actual, preds)
         results[name] = {'RMSE': rmse, 'MAE': mae}
     
-    # Create DataFrame and sort by RMSE
+    # 2. Create DataFrame
     df_metrics = pd.DataFrame.from_dict(results, orient='index')
-    return print(df_metrics.sort_values(by='RMSE'))
+    
+    # 3. Optional: Add Ratios if a benchmark is provided and exists
+    if benchmark_name and benchmark_name in df_metrics.index:
+        rw_rmse = df_metrics.loc[benchmark_name, 'RMSE']
+        rw_mae = df_metrics.loc[benchmark_name, 'MAE']
+        
+        df_metrics['RMSFE Ratio'] = df_metrics['RMSE'] / rw_rmse
+        df_metrics['MAFE Ratio'] = df_metrics['MAE'] / rw_mae
+        
+    # 4. Return sorted DataFrame (Do not wrap in print!)
+    return df_metrics.sort_values(by='RMSE')
 
 def plot_forecasts(test, predictions_dict, train=None, title="Forecast Comparison", xlabel="Date", ylabel="Industrial Production"):
     """
